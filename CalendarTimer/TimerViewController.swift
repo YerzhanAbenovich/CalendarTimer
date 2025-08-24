@@ -10,50 +10,59 @@ import UIKit
 class TimerViewController: UIViewController {
     
     @IBOutlet weak var startLabel: UILabel!
-    @IBOutlet weak var finishTimer: UILabel!
-    @IBOutlet weak var dateTimer: UILabel!
+    @IBOutlet weak var finishLabel: UILabel!
+    @IBOutlet weak var dateLabel: UILabel!
     
-    var startDate: Date?
-    var endDate: Date?
+    var startDate: Date = Date()
+    var endDate: Date = Date()
+    var timerDate: Date = Date()
+    var timer: Timer = Timer()
+
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        if let startDate = startDate, let endDate = endDate {
-            let formatter = DateFormatter()
-                    formatter.dateStyle = .medium
-                    formatter.timeStyle = .short
-                    
-                    startLabel.text = formatter.string(from: startDate)
-                    finishTimer.text = formatter.string(from: endDate)
-                    
-                    // Показываем таймер до endDate
-                    updateTimer()
-                }
+        startLabel.text = dateToString(startDate)
+        finishLabel.text = dateToString(endDate)
+        dateLabel.text = dateToString(timerDate)
+        timerDate = startDate
     }
     
-    func updateTimer() {
-        guard let endDate = endDate else { return }
-              let now = Date()
-              let remainingSeconds = Int(endDate.timeIntervalSince(now))
-        if remainingSeconds > 0 {
-                let hours = remainingSeconds / 3600
-                let minutes = (remainingSeconds % 3600) / 60
-                let seconds = remainingSeconds % 60
-                
-                dateTimer.text = String(format: "%02d:%02d:%02d", hours, minutes, seconds)
-            } else {
-                dateTimer.text = "Время вышло!"
-            }
-    }
+    
+    @objc func updateProgress() {
+           // Увеличиваем текущую дату на 1 час
+        timerDate = Calendar.current.date(byAdding: .hour, value: 1, to: timerDate)!
+           
+           // Обновляем label
+        dateLabel.text = dateToString(timerDate)
+           
+           // Проверяем, не дошли ли мы до endDate
+        if timerDate >= endDate {
+            timer.invalidate()
+            dateLabel.text = "Reached the target date!"
+           }
+       }
+    
     
     @IBAction func start(_ sender: Any) {
+        timer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(updateProgress), userInfo: nil, repeats: true)
     }
     @IBAction func stop(_ sender: Any) {
+        timer.invalidate()
     }
     @IBAction func restart(_ sender: Any) {
+        timer.invalidate()
+        timerDate = startDate
+        dateLabel.text = dateToString(timerDate)
     }
     
-    
-
+    func dateToString(_ date: Date, format: String = "d MMM yyyy, EEEE, hh:mm") -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = format
+        formatter.locale = Locale(identifier: "en_US")
+        return formatter.string(from: date)
+        
+        //конвертер с date на string
+    }
 }
