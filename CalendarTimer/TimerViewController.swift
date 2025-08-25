@@ -13,8 +13,8 @@ class TimerViewController: UIViewController {
     @IBOutlet weak var finishLabel: UILabel!
     @IBOutlet weak var dateLabel: UILabel!
     
-    var startDate: Date = Date()
-    var endDate: Date = Date()
+    var startDate: Date?
+    var endDate: Date?
     var timerDate: Date = Date()
     var timer: Timer = Timer()
 
@@ -23,26 +23,29 @@ class TimerViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+            
+            // Здесь уже есть данные из prepare(for segue:)
         startLabel.text = dateToString(startDate)
         finishLabel.text = dateToString(endDate)
+        
+        timerDate = startDate ?? Date()
         dateLabel.text = dateToString(timerDate)
-        timerDate = startDate
-    }
+        }
     
     
     @objc func updateProgress() {
-           // Увеличиваем текущую дату на 1 час
         timerDate = Calendar.current.date(byAdding: .hour, value: 1, to: timerDate)!
-           
-           // Обновляем label
         dateLabel.text = dateToString(timerDate)
-           
-           // Проверяем, не дошли ли мы до endDate
-        if timerDate >= endDate {
+                
+        if let endDate = endDate, timerDate >= endDate {
             timer.invalidate()
             dateLabel.text = "Reached the target date!"
-           }
-       }
+        }
+    }
     
     
     @IBAction func start(_ sender: Any) {
@@ -53,16 +56,15 @@ class TimerViewController: UIViewController {
     }
     @IBAction func restart(_ sender: Any) {
         timer.invalidate()
-        timerDate = startDate
+        timerDate = startDate ?? Date()
         dateLabel.text = dateToString(timerDate)
     }
     
-    func dateToString(_ date: Date, format: String = "d MMM yyyy, EEEE, hh:mm") -> String {
+    func dateToString(_ date: Date?, format: String = "d MMM yyyy, EEEE, HH:mm") -> String {
+        guard let date = date else { return "--" }
         let formatter = DateFormatter()
         formatter.dateFormat = format
         formatter.locale = Locale(identifier: "en_US")
         return formatter.string(from: date)
-        
-        //конвертер с date на string
     }
 }
